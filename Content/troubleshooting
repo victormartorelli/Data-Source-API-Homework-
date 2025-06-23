@@ -1,0 +1,148 @@
+## Troubleshooting Guide - Common Issues and Fixes
+
+Working with APIs can often lead to unexpected errors, especially when dealing with authentication, rate limits, or network hiccups. Below are some of the most common issues I encountered during this project, along with practical steps on how to resolve them.
+
+---
+
+### 1. Authentication Issues (401 Unauthorized)
+
+**What happens:**  
+You get a `401 Unauthorized` error when sending API requests.
+
+**Why:**  
+This usually means your GitHub Personal Access Token (PAT) is missing, expired, or doesn't have the required permissions.
+
+**How to fix:**
+
+- Double-check that your token is correct.
+- Make sure you’re adding it properly in the Authorization header:
+
+```http
+Authorization: Bearer <YOUR_PERSONAL_ACCESS_TOKEN>
+```
+
+- If you’re accessing private repositories, ensure your token has the correct scopes (like `repo` or `read:org`).
+
+---
+
+### 2. Rate Limit Errors (403 Forbidden)
+
+**What happens:**  
+Suddenly, your API calls start failing with a `403 Forbidden`, and the headers say you’ve hit the rate limit.
+
+**Why:**  
+GitHub limits the number of API requests you can make per hour, even for authenticated requests.
+
+**How to fix:**
+
+- Always monitor the following response headers:
+
+```
+X-RateLimit-Limit
+X-RateLimit-Remaining
+X-RateLimit-Reset
+```
+
+- If `X-RateLimit-Remaining` hits zero, the script already has built-in logic to pause until the reset time.
+
+- To avoid this in future runs:
+  - Reduce the `per_page` and `max_pages` in your requests.
+  - Run the script with smaller batches if possible.
+
+---
+
+### 3. Not Found Errors (404)
+
+**What happens:**  
+You get a `404 Not Found` when fetching data.
+
+**Why:**  
+This typically means you’re querying a repository, file path, or endpoint that doesn’t exist or is misspelled.
+
+**How to fix:**
+
+- Double-check the repository owner and name (they’re case-sensitive).
+- If you’re using the `/contents/` endpoint, make sure the file path exists.
+- For example:
+
+```
+https://api.github.com/repos/octocat/Hello-World/contents/
+```
+
+---
+
+### 4. JSON Parsing Failures
+
+**What happens:**  
+You get JSON decoding errors when trying to parse the response.
+
+**Why:**  
+This often means GitHub returned something unexpected—like an HTML error page or empty response—when you were expecting JSON.
+
+**How to fix:**
+
+- Before parsing, check if the HTTP status code is 200.
+- If not, log or print the raw `response.text` to understand what went wrong.
+- Also, make sure your error handling has a `try/except` block around any `.json()` calls.
+
+---
+
+### 5. Network Errors or Timeouts
+
+**What happens:**  
+The script crashes with connection errors, timeouts, or DNS errors.
+
+**Why:**  
+Usually caused by unstable internet, GitHub downtime, or local network issues.
+
+**How to fix:**
+
+- Make sure your internet connection is stable.
+- Retry the request after a short wait.
+- If the problem persists, check GitHub's status page:  
+  https://www.githubstatus.com/
+
+---
+
+### 6. Pagination Stopping Early
+
+**What happens:**  
+You expect more pages of results, but the script stops after just 1 or 2 pages.
+
+**Why:**  
+There might not actually be more data, or the API returned an error midway.
+
+**How to fix:**
+
+- Check the API response from the last page for error codes.
+- Review your `max_pages` and `per_page` parameters to ensure you’re fetching enough pages.
+- Look at the script logs — by design, the script prints page numbers and counts after each call.
+
+---
+
+### 7. Handling Large Volumes of Data
+
+**What happens:**  
+Your machine slows down or runs out of memory when working with large API responses.
+
+**Why:**  
+Trying to hold too much raw JSON in memory, especially when fetching thousands of records.
+
+**How to fix:**
+
+- Lower the `per_page` or `max_pages` values for smaller fetches.
+- Write each page of results to disk (like JSON or CSV) after fetching, instead of keeping everything in memory.
+- Process data in smaller batches.
+
+---
+
+### General Debugging Tips
+
+- Always log the HTTP status code and response content for any failed API call.
+- Keep an eye on rate limit headers, especially during loops with pagination.
+- Test your API calls first with a tool like **Postman** before embedding them in Python.
+- During testing, use small limits (`per_page=5`, `max_pages=1`) to avoid hitting rate limits quickly.
+- When in doubt, refer back to the official GitHub API documentation:  
+  https://docs.github.com/en/rest/overview/resources-in-the-rest-api#client-errors
+
+---
