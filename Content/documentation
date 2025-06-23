@@ -1,0 +1,110 @@
+## API Methods Used
+
+During this project, I worked with three main GitHub API endpoints that were essential for fulfilling the client's data extraction needs: **Repositories Search**, **Commits List**, and **Repository Contents**.
+
+Below is a brief, human-friendly explanation of each method I used, how I used it, and why it was chosen.
+
+---
+
+### 1. Repository Search (`GET /search/repositories`)
+
+**Purpose:**  
+This endpoint allows searching for public repositories across GitHub using specific keywords, languages, or filters.
+
+**Why I used it:**  
+The client wanted to retrieve a list of repositories that matched certain search criteria. For example: repositories written in Python, or containing specific keywords.
+
+**Example API Call:**
+
+```
+GET https://api.github.com/search/repositories?q=language:python&per_page=30&page=1
+```
+
+**Key Parameters:**
+
+- `q`: The search query (like `language:python` or keywords).
+- `per_page`: How many results per page (maximum: 100).
+- `page`: Page number (for pagination control).
+
+**Special handling done:**
+
+- Implemented pagination to loop over multiple result pages.
+- Applied rate limit handling to avoid hitting GitHub's request cap.
+
+---
+
+### 2. List Commits (`GET /repos/{owner}/{repo}/commits`)
+
+**Purpose:**  
+This endpoint returns a list of commits for a given repository.
+
+**Why I used it:**  
+The client needed to see the commit history from specific repositories to analyze development activity over time.
+
+**Example API Call:**
+
+```
+GET https://api.github.com/repos/victormartorelli/my-scripts/commits?per_page=30&page=1
+```
+
+**Key Parameters:**
+
+- `owner`: The repository owner (e.g., `victormartorelli`).
+- `repo`: The repository name (e.g., `my-scripts`).
+- `per_page`: Number of commits per page.
+- `page`: Pagination support to loop through all commit pages.
+
+**Special handling done:**
+
+- Applied pagination to fetch multiple pages of commits.
+- Included error handling for common HTTP errors like 404 or rate limiting.
+
+---
+
+### 3. Get Repository Contents (`GET /repos/{owner}/{repo}/contents/{path}`)
+
+**Purpose:**  
+This endpoint returns the contents of a specific directory or file within a repository.
+
+**Why I used it:**  
+The client wanted visibility into the file structure and contents of a repository (useful for checking which files exist at the root or in specific folders).
+
+**Example API Call:**
+
+```
+GET https://api.github.com/repos/victormartorelli/my-scripts/contents/
+```
+
+**Key Parameters:**
+
+- `owner`: Repository owner.
+- `repo`: Repository name.
+- `path`: Specific folder or file path (empty for root directory).
+
+**Special handling done:**
+
+- Managed both file and directory responses (API can return a single file or a list).
+- Implemented error handling for non-existing paths (404 errors) and rate limits.
+
+---
+
+###  General API Handling Considerations
+
+For all API calls, I made sure to:
+
+- **Use Authorization:**  
+  Each request includes a Personal Access Token in the Authorization header for higher rate limits.
+- **Handle Pagination:**  
+  For endpoints that paginate (like Search and Commits), the script automatically loops through multiple pages based on the `max_pages` setting.
+- **Respect Rate Limits:**  
+  The script checks the `X-RateLimit-Remaining` header and waits until the reset time if the limit is reached.
+- **Error Logging:**  
+  Whenever a non-200 status code is returned, the script logs the error details and stops or retries, depending on the situation.
+
+---
+
+###  Summary
+
+By combining these three key GitHub API methods with proper error handling, pagination control, and data transformation, the extraction process became robust and scalable for different use cases.
+
+This setup should provide the client with flexibility to run targeted queries, pull historical commit data, and analyze repository file structures with minimal manual intervention.
