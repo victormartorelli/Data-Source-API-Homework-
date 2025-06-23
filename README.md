@@ -12,5 +12,11 @@ The goal was to demonstrate:
 - Pagination handling
 - Data cleaning and result preparation
 
+## Running the Project
+
+To run this notebook, you need to insert your access token on line 2 of the second cell.
+To create your access token, follow this documentation:
+https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-personal-access-token-classic
+
 ---
 
